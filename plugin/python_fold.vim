@@ -2,11 +2,8 @@
 " Language:	Python
 " Author:	Jorrit Wiersma (foldexpr), Max Ischenko (foldtext)
 " Last Change:	2003 Oct 06
-" Version:	2.1 (no-blank-lines)
+" Version:	2.1
 " Bug fix:	Drexler Christopher, Tom Schumm
-" Note:		This version of the script does not depend on blank lines
-" 		following the class and function definitions.  However, it is
-" 		less reliable because of this.
 
 
 setlocal foldmethod=expr
@@ -89,6 +86,13 @@ function! GetPythonFold(lnum)
     " otherwise fail. (This is all a hack)
     let nline = getline(nnum)
     if nline =~ '^\s*\(except\|else\|elif\)'
+	return "="
+    endif
+
+    " Python programmers love their readable code, so they're usually
+    " going to have blank lines at the ends of functions or classes
+    " If the next line isn't blank, we probably don't need to end a fold
+    if nnum == a:lnum + 1
 	return "="
     endif
 
