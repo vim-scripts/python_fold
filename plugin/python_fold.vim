@@ -1,29 +1,22 @@
 " Vim folding file
 " Language:	Python
 " Author:	Jorrit Wiersma
-" Last Change:	2002 Dec 19
+" Last Change:	2003 May 08
 
 
 setlocal foldmethod=expr
-setlocal foldexpr=GetPythonFold()
+setlocal foldexpr=GetPythonFold(v:lnum)
 
 " Only define function once
 if exists("*GetPythonFold")
   finish
 endif
 
-function GetPythonFold()
+function GetPythonFold(lnum)
     " Determine folding level in Python source
     "
-    let pnum = prevnonblank(v:lnum - 1)
-
-    if pnum == 0
-	" Hit start of file
-	return 0
-    endif
-
-    let line = getline(v:lnum)
-    let ind  = indent(v:lnum)
+    let line = getline(a:lnum)
+    let ind  = indent(a:lnum)
 
     " Ignore blank lines
     if line =~ '^\s*$'
@@ -33,6 +26,11 @@ function GetPythonFold()
     " Ignore triple quoted strings
     if line =~ '"""'
 	return "="
+    endif
+
+    " Ignore continuation lines (this should be done better)
+    if line =~ '\\$'
+	return '='
     endif
 
     " Support markers
@@ -47,12 +45,26 @@ function GetPythonFold()
 	return ">" . (ind / &sw + 1)
     endif
 
+    let pnum = prevnonblank(a:lnum - 1)
+
+    if pnum == 0
+	" Hit start of file
+	return 0
+    endif
+
     " The end of a fold is determined through a difference in indentation
     " between this line and the next.
     " So first look for next line
-    let nnum = nextnonblank(v:lnum + 1)
+    let nnum = nextnonblank(a:lnum + 1)
     if nnum == 0
 	return "="
+    endif
+
+    " First I check for some common cases where this algorithm would
+    " otherwise fail. (This is all a hack)
+    let nline = getline(nnum)
+    if nline =~ '^\s*\(except\|else\|elif\)'
+        return "="
     endif
 
     " If next line has less indentation we end a fold.
