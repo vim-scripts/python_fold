@@ -1,18 +1,33 @@
 " Vim folding file
 " Language:	Python
-" Author:	Jorrit Wiersma
+" Author:	Jorrit Wiersma (foldexpr), Max Ischenko (foldtext)
 " Last Change:	2003 May 08
+" Bug fix:	Drexler Christopher
 
 
 setlocal foldmethod=expr
 setlocal foldexpr=GetPythonFold(v:lnum)
+setlocal foldtext=PythonFoldText()
 
-" Only define function once
-if exists("*GetPythonFold")
-  finish
-endif
 
-function GetPythonFold(lnum)
+function! PythonFoldText()
+  let line = getline(v:foldstart)
+  let nnum = nextnonblank(v:foldstart + 1)
+  let nextline = getline(nnum)
+  if nextline =~ '^\s\+"""$'
+    let line = line . getline(nnum + 1)
+  elseif nextline =~ '^\s\+"""'
+    let line = line . ' ' . matchstr(nextline, '"""\zs.\{-}\ze\("""\)\?$')
+  elseif nextline =~ '^\s\+"[^"]\+"$'
+    let line = line . ' ' . matchstr(nextline, '"\zs.*\ze"')
+  elseif nextline =~ '^\s+pass$'
+    let line = line . ' pass'
+  endif
+  return '+ ' . line
+endfunction
+
+
+function! GetPythonFold(lnum)
     " Determine folding level in Python source
     "
     let line = getline(a:lnum)
@@ -28,7 +43,7 @@ function GetPythonFold(lnum)
 	return "="
     endif
 
-    " Ignore continuation lines (this should be done better)
+    " Ignore continuation lines
     if line =~ '\\$'
 	return '='
     endif
@@ -77,7 +92,6 @@ function GetPythonFold(lnum)
 
     " If none of the above apply, keep the indentation
     return "="
-
 
 endfunction
 
