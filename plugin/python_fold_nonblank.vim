@@ -1,8 +1,12 @@
 " Vim folding file
 " Language:	Python
 " Author:	Jorrit Wiersma (foldexpr), Max Ischenko (foldtext)
-" Last Change:	2003 May 08
-" Bug fix:	Drexler Christopher
+" Last Change:	2003 Oct 06
+" Version:	2.1 (no-blank-lines)
+" Bug fix:	Drexler Christopher, Tom Schumm
+" Note:		This version of the script does not depend on blank lines
+" 		following the class and function definitions.  However, it is
+" 		less reliable because of this.
 
 
 setlocal foldmethod=expr
@@ -39,7 +43,7 @@ function! GetPythonFold(lnum)
     endif
 
     " Ignore triple quoted strings
-    if line =~ '"""'
+    if line =~ "(\"\"\"|''')"
 	return "="
     endif
 
@@ -67,6 +71,12 @@ function! GetPythonFold(lnum)
 	return 0
     endif
 
+    " If the previous line has foldlevel zero, and we haven't increased
+    " it, we should have foldlevel zero also
+    if foldlevel(pnum) == 0
+	return 0
+    endif
+
     " The end of a fold is determined through a difference in indentation
     " between this line and the next.
     " So first look for next line
@@ -79,7 +89,7 @@ function! GetPythonFold(lnum)
     " otherwise fail. (This is all a hack)
     let nline = getline(nnum)
     if nline =~ '^\s*\(except\|else\|elif\)'
-        return "="
+	return "="
     endif
 
     " If next line has less indentation we end a fold.
