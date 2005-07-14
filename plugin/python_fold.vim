@@ -1,8 +1,9 @@
 " Vim folding file
 " Language:	Python
-" Author:	Jorrit Wiersma (foldexpr), Max Ischenko (foldtext)
-" Last Change:	2004 Jun 30
-" Version:	2.2
+" Author:	Jorrit Wiersma (foldexpr), Max Ischenko (foldtext), Robert
+" Ames (line counts)
+" Last Change:	2005 Jul 14
+" Version:	2.3
 " Bug fix:	Drexler Christopher, Tom Schumm, Geoff Gerrietts
 
 
@@ -24,7 +25,17 @@ function! PythonFoldText()
   elseif nextline =~ '^\s\+pass\s*$'
     let line = line . ' pass'
   endif
-  return '+ ' . line
+  let size = 1 + v:foldend - v:foldstart
+  if size < 10
+    let size = " " . size
+  endif
+  if size < 100
+    let size = " " . size
+  endif
+  if size < 1000
+    let size = " " . size
+  endif
+  return size . " lines: " . line
 endfunction
 
 
